@@ -1,45 +1,79 @@
 from django.shortcuts import render
-from .models import Letting, Profile
+
+# MODIFICATION: Importation des utilitaires de journalisation personnalisés
+from oc_lettings_site.utils.logging_utils import log_info, log_error, log_function_call
 
 
-
-
-# Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque molestie quam lobortis leo consectetur ullamcorper non id est. Praesent dictum, nulla eget feugiat sagittis, sem mi convallis eros,
-# vitae dapibus nisi lorem dapibus sem. Maecenas pharetra purus ipsum, eget consequat ipsum lobortis quis. Phasellus eleifend ex auctor venenatis tempus.
-# Aliquam vitae erat ac orci placerat luctus. Nullam elementum urna nisi, pellentesque iaculis enim cursus in. Praesent volutpat porttitor magna, non finibus neque cursus id.
+# MODIFICATION: Utilisation du décorateur pour journaliser les appels de fonction
+@log_function_call
 def index(request):
-    return render(request, 'index.html')
+    """
+    Displays the main homepage.
 
-# Aenean leo magna, vestibulum et tincidunt fermentum, consectetur quis velit. Sed non placerat massa. Integer est nunc, pulvinar a
-# tempor et, bibendum id arcu. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Cras eget scelerisque
-def lettings_index(request):
-    lettings_list = Letting.objects.all()
-    context = {'lettings_list': lettings_list}
-    return render(request, 'lettings_index.html', context)
+    Args:
+        request: The HTTP request
+
+    Returns:
+        Rendered template with site index
+    """
+    # MODIFICATION: Journalisation de l'information
+    log_info("Rendering homepage")
+    return render(request, "index.html")
 
 
-#Cras ultricies dignissim purus, vitae hendrerit ex varius non. In accumsan porta nisl id eleifend. Praesent dignissim, odio eu consequat pretium, purus urna vulputate arcu, vitae efficitur
-#  lacus justo nec purus. Aenean finibus faucibus lectus at porta. Maecenas auctor, est ut luctus congue, dui enim mattis enim, ac condimentum velit libero in magna. Suspendisse potenti. In tempus a nisi sed laoreet.
-# Suspendisse porta dui eget sem accumsan interdum. Ut quis urna pellentesque justo mattis ullamcorper ac non tellus. In tristique mauris eu velit fermentum, tempus pharetra est luctus. Vivamus consequat aliquam libero, eget bibendum lorem. Sed non dolor risus. Mauris condimentum auctor elementum. Donec quis nisi ligula. Integer vehicula tincidunt enim, ac lacinia augue pulvinar sit amet.
-def letting(request, letting_id):
-    letting = Letting.objects.get(id=letting_id)
-    context = {
-        'title': letting.title,
-        'address': letting.address,
-    }
-    return render(request, 'letting.html', context)
+# MODIFICATION: Ajout d'un gestionnaire d'erreur 404 personnalisé
+@log_function_call
+def handler404(request, exception):
+    """
+    Handles 404 errors.
 
-# Sed placerat quam in pulvinar commodo. Nullam laoreet consectetur ex, sed consequat libero pulvinar eget. Fusc
-# faucibus, urna quis auctor pharetra, massa dolor cursus neque, quis dictum lacus d
-def profiles_index(request):
-    profiles_list = Profile.objects.all()
-    context = {'profiles_list': profiles_list}
-    return render(request, 'profiles_index.html', context)
+    Args:
+        request: The HTTP request
+        exception: The exception that was raised
 
-# Aliquam sed metus eget nisi tincidunt ornare accumsan eget lac
-# laoreet neque quis, pellentesque dui. Nullam facilisis pharetra vulputate. Sed tincidunt, dolor id facilisis fringilla, eros leo tristique lacus,
-# it. Nam aliquam dignissim congue. Pellentesque habitant morbi tristique senectus et netus et males
-def profile(request, username):
-    profile = Profile.objects.get(user__username=username)
-    context = {'profile': profile}
-    return render(request, 'profile.html', context)
+    Returns:
+        Rendered 404 template
+    """
+    # MODIFICATION: Journalisation de l'erreur avec l'exception
+    log_error(f"404 error: {request.path}", exc_info=exception)
+    return render(request, "404.html", status=404)
+
+
+# MODIFICATION: Ajout d'un gestionnaire d'erreur 500 personnalisé
+@log_function_call
+def handler500(request):
+    """
+    Handles 500 errors.
+
+    Args:
+        request: The HTTP request
+
+    Returns:
+        Rendered 500 template
+    """
+    # MODIFICATION: Journalisation de l'erreur serveur
+    log_error(f"500 error occurred while processing: {request.path}")
+    return render(request, "500.html", status=500)
+
+
+# MODIFICATION: Ajout d'une vue de test pour Sentry
+@log_function_call
+def sentry_test(request):
+    """
+    Test view to verify Sentry integration.
+
+    Args:
+        request: The HTTP request
+
+    Raises:
+        Exception: Always raises an exception to test Sentry error reporting
+    """
+    log_info("Testing Sentry integration")
+    raise Exception(
+        "This is a test exception to verify Sentry is capturing errors correctly."
+    )
+
+
+# MODIFICATION: Les vues ont été déplacées vers leurs applications respectives:
+# - lettings_index and letting views are now in lettings.views
+# - profiles_index and profile views are now in profiles.views
