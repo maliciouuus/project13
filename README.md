@@ -1,6 +1,6 @@
 # Holiday Homes
 
-![CI/CD Pipeline](https://github.com/username/project13/actions/workflows/docker-build.yml/badge.svg)
+![CI/CD Pipeline](https://github.com/maliciouuus/project13/actions/workflows/docker-build.yml)
 
 Une application Django pour la gestion de locations de vacances et de profils utilisateurs.
 
@@ -45,7 +45,7 @@ Cette séparation en applications distinctes permet:
 
 1. Cloner le dépôt:
    ```bash
-   git clone https://github.com/yourusername/project13.git
+   git clone https://github.com/maliciouuus/project13.git
    cd project13
    ```
 

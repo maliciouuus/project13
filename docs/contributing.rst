@@ -20,7 +20,7 @@ Configuration de l'environnement de développement
 
 .. code-block:: bash
 
-   git clone https://github.com/yourusername/project13.git
+   git clone https://github.com/maliciouuus/project13.git
    cd project13
 
 2. Créez et activez un environnement virtuel :
