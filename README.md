@@ -161,7 +161,7 @@ Ce projet utilise GitHub Actions pour l'intégration continue et la livraison co
 
 ### Processus de la pipeline
 
-La pipeline est divisée en trois étapes:
+La pipeline est divisée en deux étapes:
 
 1. **Test et Linting**: 
    - Exécution automatique de flake8 pour vérifier la qualité du code
@@ -174,11 +174,6 @@ La pipeline est divisée en trois étapes:
    - L'image est publiée sur DockerHub avec le tag `purityoff/oc-lettings:latest`
    - Cette étape n'est exécutée que si les tests sont réussis
 
-3. **Déploiement sur Render**:
-   - Après la construction de l'image, le hook de déploiement Render est déclenché
-   - Render télécharge la nouvelle image Docker et la déploie
-   - Cette étape n'est exécutée que si la construction de l'image est réussie
-
 ### Configuration des Secrets GitHub
 
 Pour que la pipeline fonctionne correctement, configurez les secrets suivants dans votre dépôt GitHub (Settings > Secrets and variables > Actions):
@@ -187,7 +182,6 @@ Pour que la pipeline fonctionne correctement, configurez les secrets suivants da
 |--------|-------------|
 | `DOCKER_USERNAME` | Nom d'utilisateur DockerHub (purityoff) |
 | `DOCKER_PASSWORD` | Mot de passe ou token DockerHub |
-| `RENDER_DEPLOY_HOOK_URL` | URL du webhook de déploiement Render |
 
 ### Configuration de Render
 
@@ -195,9 +189,9 @@ Pour configurer Render afin qu'il utilise l'image Docker:
 
 1. Créez un nouveau service Web sur Render
 2. Sélectionnez "Docker Registry" comme environnement
-3. Entrez "purityoff/oc-lettings:latest" comme Image URL
+3. Entrez "purityoff/oc-lettings:nginx" comme Image URL
 4. Configurez les variables d'environnement nécessaires (voir .env2)
-5. Activez le déploiement automatique lorsqu'une nouvelle image est publiée
+5. Assurez-vous que le port est configuré sur 80 (et non 8000)
 
 ### Application déployée
 
@@ -216,8 +210,10 @@ Pour modifier et redéployer l'application:
    git push origin main
    ```
 3. GitHub Actions construira automatiquement une nouvelle image Docker
-4. Render détectera la nouvelle image et la déploiera automatiquement
-5. En quelques minutes, vos modifications seront visibles sur le site déployé
+4. Pour déployer la nouvelle image sur Render:
+   - Allez dans votre service sur Render
+   - Cliquez sur "Manual Deploy" > "Deploy latest image"
+   - Attendez que le déploiement se termine
 
 ### Extraire l'image depuis Docker Hub
 
