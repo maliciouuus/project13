@@ -265,7 +265,7 @@ project13/
 ## Documentation technique
 
 La documentation détaillée du projet est disponible sur Read the Docs:
-- [Documentation complète](https://oc-lettings-documentation.readthedocs.io/)
+- [Documentation complète](https://project13.readthedocs.io/en/latest/index.html)
 
 Pour générer la documentation localement:
 ```bash
