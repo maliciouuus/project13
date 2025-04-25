@@ -28,8 +28,16 @@ COPY . .
 # Using ignore errors to prevent build failures due to missing static files
 RUN python manage.py collectstatic --noinput --clear || true
 
-# Exécuter les migrations au démarrage et lancer le serveur
-CMD sh -c "python manage.py migrate && gunicorn oc_lettings_site.wsgi:application --bind 0.0.0.0:8000"
+# Créer un script d'entrée pour exécuter les migrations et créer le superutilisateur
+RUN echo '#!/bin/sh\n\
+python manage.py migrate\n\
+python manage.py create_superuser\n\
+gunicorn oc_lettings_site.wsgi:application --bind 0.0.0.0:8000\n\
+' > /app/docker-entrypoint.sh \
+&& chmod +x /app/docker-entrypoint.sh
+
+# Exécuter le script d'entrée au démarrage
+CMD ["/app/docker-entrypoint.sh"]
 
 # Exposer le port
 EXPOSE 8000 

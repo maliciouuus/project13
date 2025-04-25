@@ -86,7 +86,11 @@ Si le port 8000 est déjà utilisé, vous pouvez en utiliser un autre:
    docker run -p 9090:8000 --env-file .env holiday-homes:local
    ```
 
-Le superutilisateur admin (mot de passe: admin) sera automatiquement créé au premier démarrage.
+Un superutilisateur est automatiquement créé au premier démarrage avec les identifiants suivants:
+- **Nom d'utilisateur:** francis
+- **Mot de passe:** francis
+
+Vous pouvez l'utiliser pour accéder à l'interface d'administration à l'adresse http://localhost:8000/admin/.
 
 L'application sera accessible à l'adresse http://localhost:8000/ ou http://localhost:9090/ (selon le port choisi).
 
