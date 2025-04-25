@@ -1,110 +1,92 @@
 Architecture
 ============
 
-Cette section décrit l'architecture du projet Holiday Homes.
+Vue d'ensemble
+------------
+
+OC Lettings est organisé en trois applications Django distinctes:
+
+1. **oc_lettings_site**: Application principale du projet
+2. **lettings**: Gestion des biens immobiliers
+3. **profiles**: Gestion des profils utilisateurs
 
 Structure du projet
+-----------------
+
+.. code-block:: text
+
+    project13/
+    ├── lettings/                # Application des locations
+    │   ├── models.py            # Modèles Address et Letting
+    │   ├── views.py             # Vues des locations
+    │   └── templates/           # Templates spécifiques
+    │
+    ├── profiles/                # Application des profils
+    │   ├── models.py            # Modèle Profile
+    │   ├── views.py             # Vues des profils
+    │   └── templates/           # Templates spécifiques
+    │
+    ├── oc_lettings_site/        # Application principale
+    │   ├── settings.py          # Configuration Django
+    │   ├── urls.py              # Routes principales
+    │   └── views.py             # Vue d'index
+    │
+    ├── templates/               # Templates partagés
+    └── static/                  # Fichiers statiques
+
+Modèles de données
 ----------------
 
-Le projet est organisé en plusieurs composants principaux :
+Le schéma de base de données comprend trois modèles principaux:
 
-* **oc_lettings_site** : Projet Django principal
-* **lettings** : Application pour la gestion des locations
-* **profiles** : Application pour la gestion des profils utilisateurs
+.. mermaid::
 
-.. code-block:: bash
-
-   project13/
-   ├── .github/                 # Configuration GitHub Actions
-   ├── docs/                    # Documentation Sphinx
-   ├── lettings/                # Application de gestion des locations
-   │   ├── migrations/          # Migrations de base de données
-   │   ├── templates/           # Templates spécifiques aux locations
-   │   ├── admin.py             # Configuration de l'interface d'administration
-   │   ├── apps.py              # Configuration de l'application
-   │   ├── models.py            # Définition des modèles de données
-   │   ├── tests.py             # Tests unitaires
-   │   ├── urls.py              # Configuration des URLs
-   │   └── views.py             # Vues de l'application
-   ├── oc_lettings_site/        # Configuration principale du projet
-   │   ├── utils/               # Utilitaires partagés
-   │   ├── settings.py          # Paramètres de développement
-   │   ├── settings_prod.py     # Paramètres de production
-   │   ├── urls.py              # Configuration des URLs principales
-   │   ├── views.py             # Vues principales
-   │   └── wsgi.py              # Configuration WSGI
-   ├── profiles/                # Application de gestion des profils
-   │   ├── [structure similaire à lettings]
-   ├── static/                  # Fichiers statiques (CSS, JS, images)
-   ├── templates/               # Templates partagés
-   ├── .coveragerc              # Configuration de la couverture des tests
-   ├── .env.example             # Exemple de fichier de variables d'environnement
-   ├── .flake8                  # Configuration du linting
-   ├── conftest.py              # Configuration pytest
-   ├── docker-compose.yml       # Configuration Docker Compose
-   ├── Dockerfile               # Instructions de build Docker
-   ├── manage.py                # Script de gestion Django
-   ├── pytest.ini               # Configuration pytest
-   ├── README.md                # Documentation principale
-   ├── render.yaml              # Configuration de déploiement Render
-   └── requirements.txt         # Dépendances du projet
-
-Modèle de données
-----------------
-
-Le schéma de base de données du projet est organisé autour de quatre entités principales :
-
-* **User** : Modèle standard de Django pour l'authentification des utilisateurs
-* **Profile** : Extension du modèle User avec des informations supplémentaires
-* **Address** : Représentation d'une adresse physique
-* **Letting** : Représentation d'une propriété en location
-
-.. raw:: html
-
-   <div class="mermaid">
    classDiagram
-       class User {
-           +id: AutoField (PK)
-           +username: CharField
-           +email: EmailField
-           +password: CharField
-           +first_name: CharField
-           +last_name: CharField
-           +is_active: BooleanField
-           +is_staff: BooleanField
-           +is_superuser: BooleanField
-           +date_joined: DateTimeField
-           +last_login: DateTimeField
-       }
-       
-       class Profile {
-           +id: AutoField (PK)
-           +user: OneToOneField (FK)
-           +favorite_city: CharField
-           +__str__(): String
-       }
-       
-       class Address {
-           +id: AutoField (PK)
-           +number: PositiveIntegerField
-           +street: CharField
-           +city: CharField
-           +state: CharField
-           +zip_code: PositiveIntegerField
-           +country_iso_code: CharField
-           +__str__(): String
-       }
-       
-       class Letting {
-           +id: AutoField (PK)
-           +title: CharField
-           +address: OneToOneField (FK)
-           +__str__(): String
-       }
-       
-       User "1" -- "1" Profile : has
-       Address "1" -- "1" Letting : belongs to
-   </div>
+      class Address {
+          +number: int
+          +street: str
+          +city: str
+          +state: str
+          +zip_code: int
+          +country_iso_code: str
+      }
+      
+      class Letting {
+          +title: str
+          +address: Address
+      }
+      
+      class Profile {
+          +user: User
+          +favorite_city: str
+      }
+      
+      class User {
+          +username: str
+          +email: str
+          +password: str
+      }
+      
+      Letting "1" -- "1" Address: has
+      Profile "1" -- "1" User: belongs to
+
+Interfaces
+---------
+
+L'application propose plusieurs interfaces:
+
+1. **Interface publique**: 
+   - Page d'accueil
+   - Liste des locations
+   - Détails d'une location
+   - Liste des profils 
+   - Détails d'un profil
+
+2. **Interface d'administration**:
+   - Gestion des locations
+   - Gestion des adresses
+   - Gestion des profils
+   - Gestion des utilisateurs
 
 Relations
 ^^^^^^^^^

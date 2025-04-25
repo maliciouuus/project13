@@ -1,131 +1,57 @@
 Pipeline CI/CD
-==========
+============
 
-Cette section détaille le pipeline d'intégration et de déploiement continus (CI/CD) implémenté pour le projet Holiday Homes.
+Présentation
+-----------
 
-Vue d'ensemble
--------------
+Le projet utilise GitHub Actions pour automatiser le processus d'intégration continue et de déploiement continu.
 
-Le pipeline CI/CD est implémenté avec GitHub Actions et permet d'automatiser la construction, la publication et le déploiement de l'application. Le workflow est défini dans le fichier ``.github/workflows/docker-build.yml``.
-
-.. image:: https://mermaid.ink/img/pako:eNptkc1qAyEQhV9lmEUDpZBlQO3GZNFAoAshELLovdZoNWMwrtkQ8u5V06bQdqHinO985zL6kSvFSOmNJXZLUjOltbIqwLugbkw2uvcOuRN7EoZXhAYH79BO_JjYYhDdOvhZOq0MtOiJbYJxtHvswMBmC-MkOqnVu7f-FgG_Kb5f9i3cmbrHPHjMaYKxhY2Loe2h9iCZnkNmSE9Vs5NUw9DM4JDXfLYZl4_nC7jStT1mFzUe5lVyLx9_dRIjO2EVKXk6o5Z5WdCKlvz49QVtKTyTzOSQn5OymDK_VJSu2NLRIjWUpNJVKipW1LHCtYIWqWpYcYErEUX0D1dNg1s?type=png
-   :alt: Pipeline CI/CD Flow
-   :align: center
-
-Le pipeline utilise une approche simplifiée avec deux étapes principales :
-
-1. **Construction et publication Docker**
-2. **Déploiement automatique sur Render**
-
-Job 1: Construction et publication Docker
----------------------------------------
-
-Ce job est exécuté à chaque push sur la branche main. Il effectue les actions suivantes :
-
-.. code-block:: yaml
-
-   build:
-     runs-on: ubuntu-latest
-     
-     steps:
-       - name: Checkout repository
-         uses: actions/checkout@v3
-         
-       - name: Set up Docker Buildx
-         uses: docker/setup-buildx-action@v2
-         
-       - name: Log in to Docker Hub
-         uses: docker/login-action@v2
-         with:
-           username: ${{ secrets.DOCKER_USERNAME }}
-           password: ${{ secrets.DOCKER_PASSWORD }}
-           
-       - name: Build and push Docker image
-         uses: docker/build-push-action@v5
-         with:
-           context: .
-           push: true
-           tags: purityoff/oc-lettings:latest
-
-Ce job utilise plusieurs actions GitHub :
-- **actions/checkout** : Récupère le code source
-- **docker/setup-buildx-action** : Configure Buildx pour des builds plus efficaces
-- **docker/login-action** : Authentification sur DockerHub
-- **docker/build-push-action** : Construction et publication de l'image
-
-L'image est taguée avec ``latest`` pour toujours pointer vers la dernière version.
-
-Déploiement automatique sur Render
---------------------------------
-
-Render est configuré pour surveiller l'image Docker sur Docker Hub. Le déploiement est entièrement automatisé :
-
-1. Render détecte les nouvelles versions de l'image Docker
-2. Render télécharge automatiquement la nouvelle image
-3. Render déploie la nouvelle image sur votre service web
-
-Pour configurer le déploiement automatique sur Render :
-
-1. Créez un compte sur `Render <https://render.com>`_
-2. Créez un nouveau service web de type Docker
-3. Spécifiez l'URL de l'image : ``docker.io/purityoff/oc-lettings:latest``
-4. Configurez les variables d'environnement nécessaires
-5. Activez l'option "Auto-Deploy" pour les mises à jour automatiques
-
-Avantages de cette approche
--------------------------
-
-Cette approche de CI/CD simplifiée offre plusieurs avantages :
-
-1. **Simplicité** : Un workflow simple et facile à comprendre
-2. **Efficacité** : Déploiement rapide des modifications
-3. **Fiabilité** : Processus de déploiement cohérent
-4. **Traçabilité** : Chaque déploiement correspond à une image Docker spécifique
-5. **Facilité de rollback** : Possibilité de revenir à une version précédente en spécifiant une image Docker plus ancienne
-
-Configuration requise
+Étapes de la pipeline
 -------------------
 
-Pour que le pipeline fonctionne correctement, les secrets suivants doivent être configurés dans les paramètres du dépôt GitHub :
+1. **Test**:
+   - Exécution de flake8 pour la vérification du code
+   - Exécution des tests pytest avec une couverture minimale de 80%
 
-- ``DOCKER_USERNAME`` : Nom d'utilisateur DockerHub (purityoff)
-- ``DOCKER_PASSWORD`` : Token d'accès DockerHub
+2. **Build**:
+   - Construction de l'image Docker
+   - Publication sur Docker Hub avec les tags `latest` et le hash du commit
 
-Tester le pipeline localement
----------------------------
+3. **Déploiement**:
+   - Déploiement automatique sur Render
 
-Vous pouvez tester le processus de déploiement localement en exécutant l'image Docker :
+Diagramme de flux
+---------------
+
+.. mermaid::
+
+   graph LR
+       A[Push Code] --> B[Run Tests]
+       B -->|Success| C[Build Docker Image]
+       C --> D[Push to Docker Hub]
+       D --> E[Deploy to Render]
+       B -->|Failure| F[Notify Failure]
+
+Configuration
+-----------
+
+La configuration se trouve dans `.github/workflows/docker-build.yml`.
+
+Variables d'environnement requises:
+
+* `DOCKER_USERNAME`: Nom d'utilisateur Docker Hub
+* `DOCKER_PASSWORD`: Mot de passe Docker Hub
+* `RENDER_DEPLOY_HOOK_URL`: URL du webhook de déploiement Render
+
+Commandes utiles
+--------------
+
+Pour tester l'image localement:
 
 .. code-block:: bash
 
-   # Extraire l'image depuis Docker Hub
    docker pull purityoff/oc-lettings:latest
-   
-   # Exécuter l'image localement
    docker run -p 8000:8000 --env-file .env purityoff/oc-lettings:latest
-
-Modification et redéploiement
----------------------------
-
-Pour apporter des modifications et les déployer :
-
-1. Modifiez le code source
-2. Committez et poussez les changements sur la branche main
-3. GitHub Actions construira et publiera automatiquement une nouvelle image Docker
-4. Render détectera la nouvelle image et la déploiera automatiquement
-
-Le temps entre le push sur GitHub et le déploiement sur Render est généralement de quelques minutes.
-
-Bonnes pratiques
---------------
-
-Pour tirer le meilleur parti de ce pipeline CI/CD, suivez ces bonnes pratiques :
-
-1. **Tests locaux** : Testez vos modifications localement avant de les pousser
-2. **Messages de commit clairs** : Utilisez des messages descriptifs pour faciliter le suivi des changements
-3. **Branches de fonctionnalité** : Développez les nouvelles fonctionnalités sur des branches séparées
-4. **Pull requests** : Utilisez des pull requests pour réviser le code avant de le fusionner avec main
-5. **Surveillez les déploiements** : Vérifiez les logs sur Render après chaque déploiement
 
 Configuration du pipeline CI/CD
 -------------------------------
@@ -157,3 +83,26 @@ Cette approche présente plusieurs avantages pour le workflow CI/CD :
 1. **Simplicité** : Pas besoin de configurer une base de données externe pour le déploiement
 2. **Rapidité** : Le processus de déploiement est plus rapide car il n'y a pas de migration vers une base de données externe
 3. **Cohérence** : Les mêmes tests fonctionnent de la même manière dans tous les environnements 
+
+Bonnes pratiques
+--------------
+
+Pour tirer le meilleur parti de ce pipeline CI/CD, suivez ces bonnes pratiques :
+
+1. **Tests locaux** : Testez vos modifications localement avant de les pousser
+2. **Messages de commit clairs** : Utilisez des messages descriptifs pour faciliter le suivi des changements
+3. **Branches de fonctionnalité** : Développez les nouvelles fonctionnalités sur des branches séparées
+4. **Pull requests** : Utilisez des pull requests pour réviser le code avant de le fusionner avec main
+5. **Surveillez les déploiements** : Vérifiez les logs sur Render après chaque déploiement
+
+Modification et redéploiement
+---------------------------
+
+Pour apporter des modifications et les déployer :
+
+1. Modifiez le code source
+2. Committez et poussez les changements sur la branche main
+3. GitHub Actions construira et publiera automatiquement une nouvelle image Docker
+4. Render détectera la nouvelle image et la déploiera automatiquement
+
+Le temps entre le push sur GitHub et le déploiement sur Render est généralement de quelques minutes. 

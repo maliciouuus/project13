@@ -1,24 +1,21 @@
 Installation
 ============
 
-Cette section explique comment installer et configurer le projet Holiday Homes pour le développement et le déploiement.
-
 Prérequis
 --------
 
 * Python 3.9 ou supérieur
 * pip (gestionnaire de paquets Python)
 * Git
-* Docker (optionnel, pour la conteneurisation)
 
-Configuration pour le développement local
-----------------------------------------
+Installation locale
+-----------------
 
 1. Cloner le dépôt :
 
 .. code-block:: bash
 
-   git clone https://github.com/yourusername/project13.git
+   git clone https://github.com/maliciouuus/project13.git
    cd project13
 
 2. Créer et activer un environnement virtuel :
@@ -34,107 +31,70 @@ Configuration pour le développement local
 
    pip install -r requirements.txt
 
-4. Créer un fichier `.env` basé sur `.env.example` :
+4. Copier le fichier de configuration :
 
 .. code-block:: bash
 
    cp .env.example .env
 
-5. Éditer le fichier `.env` avec vos propres valeurs de configuration.
-
-6. Exécuter les migrations pour créer la structure de la base de données :
+5. Lancer les migrations :
 
 .. code-block:: bash
 
    python manage.py migrate
 
-7. Créer un superutilisateur pour accéder à l'interface d'administration :
-
-.. code-block:: bash
-
-   python manage.py createsuperuser
-
-8. Lancer le serveur de développement :
+6. Démarrer le serveur :
 
 .. code-block:: bash
 
    python manage.py runserver
 
-Le site devrait maintenant être accessible à l'adresse http://127.0.0.1:8000/.
+Le site est accessible à l'adresse http://127.0.0.1:8000/
 
-Configuration avec Docker
------------------------
+Connexion à l'administration
+---------------------------
 
-1. Construire et lancer l'application avec Docker Compose :
+Un utilisateur admin est créé automatiquement:
 
-.. code-block:: bash
+* **Nom d'utilisateur:** francis
+* **Mot de passe:** francis
 
-   docker-compose up
+Utilisation avec Docker
+---------------------
 
-2. Pour exécuter uniquement les tests :
-
-.. code-block:: bash
-
-   docker-compose run tests
-
-3. Pour arrêter tous les services :
+Construction et lancement:
 
 .. code-block:: bash
 
-   docker-compose down
-
-4. Pour construire l'image sans lancer les services :
-
-.. code-block:: bash
-
-   docker-compose build
+   docker build -t oc-lettings:local .
+   docker run -p 8000:8000 --env-file .env oc-lettings:local
 
 Variables d'environnement
 -----------------------
 
-Le projet utilise des variables d'environnement pour configurer divers aspects de l'application. Les principales variables sont :
+Les principales variables d'environnement:
 
-* ``DEBUG`` : Active/désactive le mode débogage (``True`` ou ``False``)
-* ``SECRET_KEY`` : Clé secrète utilisée par Django pour les opérations cryptographiques
-* ``SENTRY_DSN`` : URL de connexion à Sentry pour le suivi des erreurs
-* ``SENTRY_ENVIRONMENT`` : Environnement Sentry (``development``, ``production``, etc.)
-* ``SENTRY_TRACES_SAMPLE_RATE`` : Taux d'échantillonnage pour les traces Sentry (entre 0.0 et 1.0)
-* ``RENDER`` : Indique si l'application s'exécute sur Render (``True`` ou ``False``)
-* ``DATABASE_URL`` : URL de connexion à la base de données (pour PostgreSQL en production)
+* ``DEBUG`` : Mode débogage (True/False)
+* ``SECRET_KEY`` : Clé secrète Django
+* ``SENTRY_DSN`` : URL de connexion à Sentry
 
-Configuration des services externes
---------------------------------
+Diagramme de l'architecture
+--------------------------
 
-### Sentry
+.. mermaid::
 
-1. Créez un compte sur [Sentry](https://sentry.io)
-2. Créez un nouveau projet Django
-3. Copiez le DSN dans votre fichier `.env`
-
-### DockerHub
-
-1. Créez un compte sur [DockerHub](https://hub.docker.com)
-2. Créez un nouveau dépôt pour stocker vos images
-3. Générez un token d'accès dans les paramètres de votre compte
-
-### Render
-
-1. Créez un compte sur [Render](https://render.com)
-2. Créez un nouveau service Web
-3. Connectez-le à votre dépôt GitHub
-4. Configurez les variables d'environnement requises
-
+   graph TD
+       A[Client] --> B[Django Application]
+       B --> C[Lettings App]
+       B --> D[Profiles App]
+       C --> E[Database]
+       D --> E
+       B --> F[Sentry]
+       
 Dépannage
 --------
 
-**Erreur de migration** : Si vous rencontrez des erreurs lors des migrations, essayez :
-
-.. code-block:: bash
-
-   python manage.py migrate --run-syncdb
-
-**Erreur de module introuvable** : Vérifiez que vous êtes bien dans l'environnement virtuel et que toutes les dépendances sont installées.
-
-**Erreur de connexion à Sentry** : Vérifiez que votre DSN Sentry est correct et que votre réseau permet la connexion à Sentry.
-
-**Erreur avec Docker** : Assurez-vous que Docker Desktop est en cours d'exécution et que le fichier `Dockerfile` est à la racine du projet. 
+En cas de problème, vérifiez:
+* Les migrations sont bien appliquées
+* L'environnement virtuel est activé
+* Les variables d'environnement sont correctes 

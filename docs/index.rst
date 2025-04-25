@@ -1,11 +1,12 @@
-Documentation de Holiday Homes
-==========================
+Documentation OC Lettings
+====================
 
-Bienvenue dans la documentation de Holiday Homes. Cette documentation fournit des informations détaillées sur la structure du projet, les modèles, les vues, ainsi que sur le déploiement et l'utilisation du pipeline CI/CD.
+Bienvenue dans la documentation du projet OC Lettings. Cette application Django permet de gérer 
+des locations immobilières et des profils utilisateurs.
 
-.. image:: https://github.com/username/project13/actions/workflows/ci-cd.yml/badge.svg
-   :alt: CI/CD Pipeline Status
-   :target: https://github.com/username/project13/actions
+.. image:: https://github.com/maliciouuus/project13/actions/workflows/docker-build.yml/badge.svg
+   :alt: État de la Pipeline CI/CD
+   :target: https://github.com/maliciouuus/project13/actions
 
 .. toctree::
    :maxdepth: 2
@@ -14,29 +15,22 @@ Bienvenue dans la documentation de Holiday Homes. Cette documentation fournit de
    introduction
    installation
    architecture
-   modules/index
    cicd
    deployment
    testing
-   contributing
 
-À propos de Holiday Homes
--------------------------
+Aperçu du site
+-------------
 
-Holiday Homes est une application web Django qui permet aux utilisateurs de parcourir des annonces de locations de vacances et de consulter des profils utilisateurs. Le projet intègre un pipeline CI/CD complet utilisant GitHub Actions, Docker et Render pour le déploiement.
+OC Lettings est une plateforme de location immobilière avec les sections principales suivantes:
 
-Fonctionnalités principales
----------------------------
+* Une page d'accueil présentant le site
+* Une section de locations pour parcourir les propriétés
+* Une section de profils pour consulter les utilisateurs
+* Une interface d'administration pour gérer les données
 
-* Parcourir les propriétés disponibles
-* Consulter les profils des utilisateurs
-* Interface d'administration pour la gestion des données
-* Intégration avec Sentry pour le suivi des erreurs
-* Pipeline CI/CD automatisé
-
-Indices et tables
-=================
+Index et recherche
+==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search` 

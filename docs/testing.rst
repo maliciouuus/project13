@@ -1,7 +1,65 @@
 Tests
-=======
+=====
 
-Cette section explique le framework de test et les procédures de test pour le projet Holiday Homes.
+Types de tests
+------------
+
+Le projet utilise plusieurs types de tests:
+
+* **Tests unitaires**: Tester les fonctions et méthodes individuelles
+* **Tests d'intégration**: Tester l'interaction entre composants
+* **Tests de vues**: Vérifier le bon fonctionnement des vues Django
+* **Tests de modèles**: Vérifier les modèles de données
+* **Linting**: Vérifier la qualité du code
+
+Exécution des tests
+-----------------
+
+Pour exécuter tous les tests:
+
+.. code-block:: bash
+
+   pytest
+
+Pour vérifier la couverture de code:
+
+.. code-block:: bash
+
+   pytest --cov=.
+
+Pour exécuter le linting:
+
+.. code-block:: bash
+
+   flake8
+
+Structure des tests
+----------------
+
+Les tests sont organisés par application:
+
+* `lettings/tests.py`: Tests pour l'application lettings
+* `profiles/tests.py`: Tests pour l'application profiles
+* `oc_lettings_site/tests.py`: Tests pour l'application principale
+
+Objectifs de qualité
+------------------
+
+* Couverture de code minimale: 80%
+* Zéro erreur de linting
+* Tests automatisés dans la pipeline CI/CD
+
+Test manuel
+---------
+
+Tester manuellement les fonctionnalités principales:
+
+1. Navigation sur la page d'accueil
+2. Consultation de la liste des locations
+3. Consultation des détails d'une location
+4. Consultation de la liste des profils
+5. Consultation des détails d'un profil
+6. Test de l'intégration Sentry via `/sentry-test/`
 
 Framework de tests
 ----------------
