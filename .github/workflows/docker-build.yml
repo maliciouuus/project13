@@ -70,16 +70,3 @@ jobs:
           tags: |
             purityoff/oc-lettings:latest
             purityoff/oc-lettings:${{ steps.short-sha.outputs.sha }}
-  
-  deploy:
-    name: Deploy to Production
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-    
-    steps:
-      - name: Deploy to Render
-        uses: fjogeleit/http-request-action@v1
-        with:
-          url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-          method: 'POST' 
