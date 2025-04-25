@@ -10,13 +10,36 @@ Holiday Homes est une application web développée avec Django qui permet aux ut
 
 ### Caractéristiques
 
+- Architecture modulaire avec applications séparées (lettings, profiles)
 - Section de locations pour parcourir les propriétés disponibles
 - Section de profils pour consulter les informations des utilisateurs
 - Interface d'administration pour gérer les données
 - Intégration avec Sentry pour le suivi des erreurs
-- Pipeline CI/CD avec GitHub Actions
+- Pipeline CI/CD complet avec GitHub Actions, Docker et Render
+- Documentation technique complète avec Sphinx et Read the Docs
+
+## Architecture du projet
+
+Le projet a été réorganisé selon une architecture modulaire pour améliorer la maintenabilité et l'évolutivité:
+
+- **oc_lettings_site**: Application principale contenant la configuration du projet
+- **lettings**: Application dédiée à la gestion des locations et adresses
+- **profiles**: Application dédiée à la gestion des profils utilisateurs
+
+Cette séparation en applications distinctes permet:
+- Une meilleure organisation du code
+- Une séparation claire des responsabilités
+- Un développement plus facile des nouvelles fonctionnalités
+- Une maintenance simplifiée
 
 ## Installation et configuration
+
+### Prérequis
+
+- Python 3.9 ou supérieur
+- pip (gestionnaire de paquets Python)
+- Docker (pour le développement avec conteneurs)
+- Un compte Sentry (optionnel, pour le suivi des erreurs)
 
 ### Développement local
 
@@ -46,7 +69,7 @@ Holiday Homes est une application web développée avec Django qui permet aux ut
    # Variables d'environnement requises
    DJANGO_SECRET_KEY=votre_cle_secrete
    DEBUG=True
-   ALLOWED_HOSTS=.localhost,127.0.0.1,[::1]
+   ALLOWED_HOSTS=.localhost,127.0.0.1,[::1],testserver
    SENTRY_DSN=votre_dsn_sentry  # Laisser vide pour désactiver Sentry
    ```
 
@@ -94,13 +117,43 @@ Vous pouvez l'utiliser pour accéder à l'interface d'administration à l'adress
 
 L'application sera accessible à l'adresse http://localhost:8000/ ou http://localhost:9090/ (selon le port choisi).
 
-## Tests
+## Tests et qualité du code
 
-Exécuter les tests avec pytest:
+### Exécution des tests
+
+Le projet utilise pytest pour les tests:
 
 ```bash
+# Exécuter tous les tests
 pytest
+
+# Exécuter les tests avec couverture de code
+pytest --cov=.
+
+# Vérifier que la couverture atteint au moins 80%
+pytest --cov=. --cov-fail-under=80
 ```
+
+### Linting et vérification du code
+
+Pour vérifier la qualité du code:
+
+```bash
+# Exécuter flake8 pour vérifier le respect des normes PEP8
+flake8
+```
+
+## Surveillance des erreurs avec Sentry
+
+L'application est intégrée avec Sentry pour surveiller les erreurs en production:
+
+1. Les erreurs et exceptions sont automatiquement capturées et envoyées à Sentry
+2. La configuration de logging permet de capturer différents niveaux d'événements
+3. Le décorateur `@log_function_call` est utilisé pour journaliser les appels de fonctions importantes
+
+Pour tester l'intégration Sentry:
+- Accédez à `/sentry-test/` (génère une exception délibérément)
+- Vérifiez que l'erreur apparaît dans votre tableau de bord Sentry
 
 ## Pipeline CI/CD avec GitHub Actions
 
@@ -108,31 +161,43 @@ Ce projet utilise GitHub Actions pour l'intégration continue et la livraison co
 
 ### Processus de la pipeline
 
-La pipeline est simple et efficace:
+La pipeline est divisée en trois étapes:
 
-1. **Build et Push Docker**: 
+1. **Test et Linting**: 
+   - Exécution automatique de flake8 pour vérifier la qualité du code
+   - Exécution des tests pytest avec vérification de la couverture (minimum 80%)
+   - Cette étape est exécutée pour toutes les branches et pull requests
+
+2. **Build et Push Docker**: 
    - À chaque push sur la branche main, GitHub Actions construit automatiquement une image Docker
-   - L'image est ensuite publiée sur DockerHub avec le tag `purityoff/oc-lettings:latest`
-   - Cette étape utilise le fichier `Dockerfile` à la racine du projet
+   - L'image est taguée avec `latest` et le hash du commit pour la traçabilité
+   - L'image est publiée sur DockerHub avec le tag `purityoff/oc-lettings:latest`
+   - Cette étape n'est exécutée que si les tests sont réussis
 
-2. **Déploiement automatique sur Render**:
-   - Render est configuré pour surveiller cette image Docker
-   - Dès qu'une nouvelle version de l'image est publiée, Render la détecte automatiquement
-   - Render télécharge et déploie la nouvelle image sans intervention manuelle
-
-Ce workflow simplifié permet:
-- Un processus de déploiement rapide et fiable
-- Une traçabilité complète (chaque version déployée correspond à une image Docker)
-- Une séparation claire entre la construction (GitHub Actions) et le déploiement (Render)
+3. **Déploiement sur Render**:
+   - Après la construction de l'image, le hook de déploiement Render est déclenché
+   - Render télécharge la nouvelle image Docker et la déploie
+   - Cette étape n'est exécutée que si la construction de l'image est réussie
 
 ### Configuration des Secrets GitHub
 
-Pour que la pipeline fonctionne correctement, vous devez configurer les secrets suivants dans votre dépôt GitHub (Settings > Secrets and variables > Actions):
+Pour que la pipeline fonctionne correctement, configurez les secrets suivants dans votre dépôt GitHub (Settings > Secrets and variables > Actions):
 
 | Secret | Description |
 |--------|-------------|
 | `DOCKER_USERNAME` | Nom d'utilisateur DockerHub (purityoff) |
 | `DOCKER_PASSWORD` | Mot de passe ou token DockerHub |
+| `RENDER_DEPLOY_HOOK_URL` | URL du webhook de déploiement Render |
+
+### Configuration de Render
+
+Pour configurer Render afin qu'il utilise l'image Docker:
+
+1. Créez un nouveau service Web sur Render
+2. Sélectionnez "Docker Registry" comme environnement
+3. Entrez "purityoff/oc-lettings:latest" comme Image URL
+4. Configurez les variables d'environnement nécessaires (voir .env2)
+5. Activez le déploiement automatique lorsqu'une nouvelle image est publiée
 
 ### Application déployée
 
@@ -165,12 +230,51 @@ docker run -p 8000:8000 --env-file .env purityoff/oc-lettings:latest
 
 ## Structure du projet
 
-- `lettings/`: Application pour la gestion des locations
-- `profiles/`: Application pour la gestion des profils utilisateurs
-- `oc_lettings_site/`: Configuration principale du projet Django
-- `templates/`: Templates HTML
-- `static/`: Fichiers statiques (CSS, JS, images)
-- `.github/workflows/`: Configuration de GitHub Actions pour le CI/CD
+```
+project13/
+├── .github/workflows/       # Configuration GitHub Actions pour CI/CD
+├── docs/                    # Documentation Sphinx
+├── lettings/                # Application pour les locations
+│   ├── migrations/          # Migrations de base de données
+│   ├── templates/           # Templates spécifiques aux locations
+│   ├── admin.py             # Configuration de l'admin pour les locations
+│   ├── models.py            # Modèles Address et Letting
+│   ├── urls.py              # URLs des locations
+│   └── views.py             # Vues des locations
+├── oc_lettings_site/        # Application principale
+│   ├── management/          # Commandes personnalisées
+│   ├── utils/               # Utilitaires (logging, etc.)
+│   ├── settings.py          # Configuration du projet
+│   └── urls.py              # URLs principales
+├── profiles/                # Application pour les profils
+│   ├── migrations/          # Migrations de base de données
+│   ├── templates/           # Templates spécifiques aux profils
+│   ├── admin.py             # Configuration de l'admin pour les profils
+│   ├── models.py            # Modèle Profile
+│   ├── urls.py              # URLs des profils
+│   └── views.py             # Vues des profils
+├── static/                  # Fichiers statiques (CSS, JS, images)
+├── templates/               # Templates partagés
+├── .coveragerc              # Configuration de coverage
+├── .env.example             # Exemple de fichier .env
+├── Dockerfile               # Configuration Docker
+├── README.md                # Documentation principale
+└── requirements.txt         # Dépendances Python
+```
+
+## Documentation technique
+
+La documentation détaillée du projet est disponible sur Read the Docs:
+- [Documentation complète](https://oc-lettings-documentation.readthedocs.io/)
+
+Pour générer la documentation localement:
+```bash
+cd docs
+pip install -r requirements.txt
+make html
+```
+
+La documentation sera disponible dans `docs/_build/html/index.html`.
 
 ## Contributions
 
