@@ -1,0 +1,29 @@
+# Environnement et développement
+.env
+.env.*
+.git
+.github
+.gitignore
+.pytest_cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.coverage
+htmlcov/
+.tox/
+.nox/
+.venv/
+venv/
+
+# Bases de données (sera créée par les migrations)
+*.sqlite3
+
+# Documentation
+docs/
+MODIFICATIONS.md
+README.md
+
+# Logs
+logs/
+*.log 

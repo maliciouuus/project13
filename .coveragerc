@@ -1,0 +1,27 @@
+# MODIFICATION: Ajout d'un fichier .coveragerc pour configurer la couverture des tests
+# Le projet original n'avait pas de configuration de couverture
+
+[run]
+# Indique que la couverture est mesurée pour tous les fichiers Python dans le répertoire courant
+source = .
+
+# Liste des fichiers et répertoires à exclure de l'analyse de couverture
+omit =
+    */tests/*
+    */.venv/*
+    manage.py
+    conftest.py
+    */migrations/*
+    oc_lettings_site/settings*.py
+    */admin.py
+    */apps.py
+    docs/*
+    */asgi.py
+    */wsgi.py
+
+[report]
+# MODIFICATION: Exige une couverture minimale de 80% pour les tests
+# Cette contrainte garantit une bonne qualité de code
+fail_under = 80
+# Affiche les lignes non couvertes par les tests
+show_missing = True

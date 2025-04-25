@@ -25,7 +25,11 @@ allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
 if allowed_hosts_env:
     ALLOWED_HOSTS = allowed_hosts_env.split(",")
 else:
-    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "127.0.0.1:8000", "[::1]", "0.0.0.0"]
+    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "127.0.0.1:8000", "[::1]", "0.0.0.0", "testserver"]
+
+# Always include testserver for testing
+if "testserver" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("testserver")
 
 # Sentry configuration - only initialize if DSN is provided
 sentry_dsn = os.getenv("SENTRY_DSN")
@@ -212,4 +216,3 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
