@@ -58,8 +58,6 @@ def setup(app):
 
 
 # Créer un fichier JavaScript personnalisé pour initialiser Mermaid
-import os
-
 os.makedirs("_static", exist_ok=True)
 with open("_static/custom.js", "w") as f:
     f.write(

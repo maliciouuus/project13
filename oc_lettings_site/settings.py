@@ -15,42 +15,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv(
-    "SECRET_KEY", "fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s"
-)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
-# Obtenir la liste des hôtes autorisés depuis les variables d'environnement
-# ou utiliser une liste par défaut pour le développement local
+# Get the allowed hosts from environment variables
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
 if allowed_hosts_env:
     ALLOWED_HOSTS = allowed_hosts_env.split(",")
 else:
-    ALLOWED_HOSTS = [
-        ".localhost",
-        "127.0.0.1",
-        "[::1]",
-        "0.0.0.0",
-        "oc-lettings-xxir.onrender.com",
-        "project13-r64u.onrender.com",
-        ".onrender.com",
-    ]
+    ALLOWED_HOSTS = [".localhost", "127.0.0.1", "127.0.0.1:8000", "[::1]", "0.0.0.0"]
 
-# Sentry configuration
-sentry_sdk.init(
-    dsn=os.getenv("SENTRY_DSN"),
-    integrations=[DjangoIntegration()],
-    # Set traces_sample_rate to 1.0 to capture 100% of transactions for performance monitoring.
-    # We recommend adjusting this value in production.
-    traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
-    # Set environment to differentiate between development and production
-    environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True,
-)
+# Sentry configuration - only initialize if DSN is provided
+sentry_dsn = os.getenv("SENTRY_DSN")
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        integrations=[DjangoIntegration()],
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "1.0")),
+        environment=os.getenv("SENTRY_ENVIRONMENT", "development"),
+        send_default_pii=True,
+    )
+
+# Create logs directory if it doesn't exist
+logs_dir = os.path.join(BASE_DIR, "logs")
+os.makedirs(logs_dir, exist_ok=True)
 
 # Logging configuration
 LOGGING = {
@@ -81,7 +71,7 @@ LOGGING = {
         "file": {
             "level": "WARNING",
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", "django.log"),
+            "filename": os.path.join(logs_dir, "django.log"),
             "formatter": "verbose",
         },
     },
@@ -113,8 +103,8 @@ LOGGING = {
     },
 }
 
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     "oc_lettings_site.apps.OCLettingsSiteConfig",
     "lettings.apps.LettingsConfig",
@@ -129,7 +119,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    # "whitenoise.middleware.WhiteNoiseMiddleware",  # Commenté pour éviter l'erreur
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -137,6 +126,11 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Add whitenoise middleware if environment variable is set
+if os.getenv("USE_WHITENOISE", "False").lower() == "true":
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 ROOT_URLCONF = "oc_lettings_site.urls"
 
@@ -161,13 +155,19 @@ WSGI_APPLICATION = "oc_lettings_site.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
-
+# Use DATABASE_URL if provided, otherwise use SQLite
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": os.path.join(BASE_DIR, "oc-lettings-site.sqlite3"),
     }
 }
+
+# Use dj_database_url for PostgreSQL if available and DATABASE_URL is set
+database_url = os.getenv("DATABASE_URL")
+if database_url and "dj_database_url" in globals():
+    import dj_database_url
+    DATABASES["default"] = dj_database_url.config(default=database_url, conn_max_age=600)
 
 
 # Password validation
@@ -213,6 +213,3 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# WhiteNoise configuration - commenté pour éviter l'erreur
-# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-# WHITENOISE_MAX_AGE = 31536000  # 1 an en secondes
