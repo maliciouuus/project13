@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Variables d'environnement
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV DEBUG=False
-ENV USE_WHITENOISE=True
+ENV DEBUG=True
+ENV USE_WHITENOISE=False
 
 # Copier les requirements et installer les dépendances
 COPY requirements.txt .
@@ -24,9 +24,8 @@ RUN mkdir -p logs staticfiles
 # Copier le code source
 COPY . .
 
-# Collect static files
-# Using ignore errors to prevent build failures due to missing static files
-RUN python manage.py collectstatic --noinput --clear || true
+# Collect static files with DEBUG=True and no compression
+RUN python manage.py collectstatic --noinput --clear
 
 # Créer un script d'entrée pour exécuter les migrations et créer le superutilisateur
 RUN echo '#!/bin/sh\n\
