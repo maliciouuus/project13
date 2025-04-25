@@ -6,6 +6,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    nginx \
     && rm -rf /var/lib/apt/lists/*
 
 # Variables d'environnement
@@ -27,11 +28,26 @@ COPY . .
 # Collect static files with DEBUG=True and no compression
 RUN python manage.py collectstatic --noinput --clear
 
-# Créer un script d'entrée pour exécuter les migrations et créer le superutilisateur
+# Configurer Nginx
+RUN echo 'server {\n\
+    listen 80;\n\
+    server_name localhost;\n\
+    location /static/ {\n\
+        alias /app/staticfiles/;\n\
+    }\n\
+    location / {\n\
+        proxy_pass http://127.0.0.1:8000;\n\
+        proxy_set_header Host $host;\n\
+        proxy_set_header X-Real-IP $remote_addr;\n\
+    }\n\
+}' > /etc/nginx/sites-available/default
+
+# Créer un script d'entrée pour exécuter les migrations, créer le superutilisateur, et démarrer Gunicorn et Nginx
 RUN echo '#!/bin/sh\n\
 python manage.py migrate\n\
 python manage.py create_superuser\n\
-gunicorn oc_lettings_site.wsgi:application --bind 0.0.0.0:8000\n\
+service nginx start\n\
+gunicorn oc_lettings_site.wsgi:application --bind 127.0.0.1:8000 --workers 2 --log-level debug --access-logfile=-\n\
 ' > /app/docker-entrypoint.sh \
 && chmod +x /app/docker-entrypoint.sh
 
@@ -39,4 +55,4 @@ gunicorn oc_lettings_site.wsgi:application --bind 0.0.0.0:8000\n\
 CMD ["/app/docker-entrypoint.sh"]
 
 # Exposer le port
-EXPOSE 8000 
+EXPOSE 80 

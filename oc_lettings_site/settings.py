@@ -144,6 +144,9 @@ MIDDLEWARE = [
 if os.getenv("USE_WHITENOISE", "False").lower() == "true":
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+else:
+    # Use the default Django static files storage when not using WhiteNoise
+    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
 ROOT_URLCONF = "oc_lettings_site.urls"
 
@@ -226,5 +229,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    os.path.join(BASE_DIR, "static"),
 ]
