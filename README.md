@@ -1,6 +1,6 @@
 # Holiday Homes
 
-![CI/CD Pipeline](https://github.com/username/project13/actions/workflows/ci-cd.yml/badge.svg)
+![CI/CD Pipeline](https://github.com/username/project13/actions/workflows/docker-build.yml/badge.svg)
 
 Une application Django pour la gestion de locations de vacances et de profils utilisateurs.
 
@@ -100,23 +100,26 @@ pytest
 
 ## Pipeline CI/CD avec GitHub Actions
 
-Ce projet utilise GitHub Actions pour l'intégration continue et la livraison continue.
+Ce projet utilise GitHub Actions pour l'intégration continue et la livraison continue avec déploiement automatique sur Render.
 
 ### Processus de la pipeline
 
-La pipeline comprend trois étapes principales:
+La pipeline est simple et efficace:
 
-1. **Tests**: 
-   - Exécution des tests avec pytest
-   - Vérification de la couverture de code (doit être supérieure à 80%)
+1. **Build et Push Docker**: 
+   - À chaque push sur la branche main, GitHub Actions construit automatiquement une image Docker
+   - L'image est ensuite publiée sur DockerHub avec le tag `purityoff/oc-lettings:latest`
+   - Cette étape utilise le fichier `Dockerfile` à la racine du projet
 
-2. **Construction et publication Docker**: 
-   - Construction de l'image Docker
-   - Publication sur DockerHub avec tags appropriés
+2. **Déploiement automatique sur Render**:
+   - Render est configuré pour surveiller cette image Docker
+   - Dès qu'une nouvelle version de l'image est publiée, Render la détecte automatiquement
+   - Render télécharge et déploie la nouvelle image sans intervention manuelle
 
-3. **Déploiement**:
-   - Déploiement automatique sur Render via webhook
-   - Vérification que l'application est accessible après déploiement
+Ce workflow simplifié permet:
+- Un processus de déploiement rapide et fiable
+- Une traçabilité complète (chaque version déployée correspond à une image Docker)
+- Une séparation claire entre la construction (GitHub Actions) et le déploiement (Render)
 
 ### Configuration des Secrets GitHub
 
@@ -124,23 +127,36 @@ Pour que la pipeline fonctionne correctement, vous devez configurer les secrets 
 
 | Secret | Description |
 |--------|-------------|
-| `DOCKER_USERNAME` | Nom d'utilisateur DockerHub |
+| `DOCKER_USERNAME` | Nom d'utilisateur DockerHub (purityoff) |
 | `DOCKER_PASSWORD` | Mot de passe ou token DockerHub |
-| `RENDER_DEPLOY_HOOK` | URL du webhook de déploiement Render |
-| `DEPLOYMENT_URL` | URL publique de l'application déployée |
 
 ### Application déployée
 
 L'application est déployée et accessible à l'URL suivante:
-- [https://holiday-homes.onrender.com](https://holiday-homes.onrender.com)
+- [https://project13-r64u.onrender.com](https://project13-r64u.onrender.com)
 
-### Couverture des tests
+### Modification et redéploiement
 
-Le projet maintient une couverture de tests supérieure à 80%, ce qui est vérifié à chaque exécution de la pipeline CI/CD.
+Pour modifier et redéployer l'application:
 
-Pour vérifier la couverture localement:
+1. Effectuez vos modifications dans le code (par exemple, changer le titre dans index.html)
+2. Committez et poussez les modifications sur la branche main:
+   ```bash
+   git add .
+   git commit -m "Update title in index.html"
+   git push origin main
+   ```
+3. GitHub Actions construira automatiquement une nouvelle image Docker
+4. Render détectera la nouvelle image et la déploiera automatiquement
+5. En quelques minutes, vos modifications seront visibles sur le site déployé
+
+### Extraire l'image depuis Docker Hub
+
+Pour extraire l'image depuis Docker Hub et l'exécuter localement:
+
 ```bash
-pytest --cov=. --cov-report=term-missing
+docker pull purityoff/oc-lettings:latest
+docker run -p 8000:8000 --env-file .env purityoff/oc-lettings:latest
 ```
 
 ## Structure du projet

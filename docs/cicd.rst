@@ -6,255 +6,154 @@ Cette section détaille le pipeline d'intégration et de déploiement continus (
 Vue d'ensemble
 -------------
 
-Le pipeline CI/CD est implémenté avec GitHub Actions et permet d'automatiser les tests, la construction, la publication et le déploiement de l'application. Le workflow est défini dans le fichier ``.github/workflows/ci-cd.yml``.
+Le pipeline CI/CD est implémenté avec GitHub Actions et permet d'automatiser la construction, la publication et le déploiement de l'application. Le workflow est défini dans le fichier ``.github/workflows/docker-build.yml``.
 
-.. image:: https://mermaid.ink/img/pako:eNqFlMtugzAQRX8FzYZKlXhkQUiaTdWqVas-NrSLeCyCRYwjY5M0CvDvNQ6kJSk4rDyeO_fO2DOQxDIkmeCCLHdmsSHaZk1LZQItE5nNxFpbkmtF0iQzVtoJ0hxUbkfwmZmsA3xIDFo78gVH1lpIimnGTFFlrXvGljEE_iSQkTNmtCVreVoZmT8ksV2RJ5YJ1XD_0PChqGTIwFd-GC1OA39GoouL-dV4KdZQWgk1pO1Fs0ASLcS6ITsXXqzlJYMu7H-k5OeC6T_hN8dwWQW-74fdYs4KKkE1O6RWQxKdcpRMZLWiG6XvZ9MtZCmTxbw_FeElqCeJPqB26Xzx_KJ5rD6PIfX1wJnw7RcaLlGf-NQLS3e7d9tpDzkJViFxCU6UhCRGlxhHE8dxlSRRSsL3gY-j8Wy6nE6_1hGYNMExONH7bDSdRV-fXh_4HfXqY0-CGzfOxVJhMiOhx0nIrjcn4T8VeTuZ?type=png
+.. image:: https://mermaid.ink/img/pako:eNptkc1qAyEQhV9lmEUDpZBlQO3GZNFAoAshELLovdZoNWMwrtkQ8u5V06bQdqHinO985zL6kSvFSOmNJXZLUjOltbIqwLugbkw2uvcOuRN7EoZXhAYH79BO_JjYYhDdOvhZOq0MtOiJbYJxtHvswMBmC-MkOqnVu7f-FgG_Kb5f9i3cmbrHPHjMaYKxhY2Loe2h9iCZnkNmSE9Vs5NUw9DM4JDXfLYZl4_nC7jStT1mFzUe5lVyLx9_dRIjO2EVKXk6o5Z5WdCKlvz49QVtKTyTzOSQn5OymDK_VJSu2NLRIjWUpNJVKipW1LHCtYIWqWpYcYErEUX0D1dNg1s?type=png
    :alt: Pipeline CI/CD Flow
    :align: center
 
-Le pipeline est divisé en cinq jobs principaux :
+Le pipeline utilise une approche simplifiée avec deux étapes principales :
 
-1. **Test**
-2. **Vérification de sécurité**
-3. **Documentation**
-4. **Construction et publication Docker**
-5. **Déploiement**
+1. **Construction et publication Docker**
+2. **Déploiement automatique sur Render**
 
-Job 1: Test
-----------
-
-Ce job est exécuté à chaque push sur la branche master et pour chaque pull request. Il effectue les actions suivantes :
-
-.. code-block:: yaml
-
-   test:
-     runs-on: ubuntu-latest
-     
-     steps:
-     - uses: actions/checkout@v3
-     
-     - name: Set up Python 3.9
-       uses: actions/setup-python@v4
-       with:
-         python-version: '3.9'
-         
-     - name: Install dependencies
-       run: |
-         python -m pip install --upgrade pip
-         pip install -r requirements.txt
-         
-     - name: Run tests with coverage
-       run: |
-         python -m pytest
-         
-     - name: Lint with flake8
-       run: |
-         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-         flake8 . --count --exit-zero --max-complexity=10 --statistics
-         
-     - name: Check code formatting with black
-       run: |
-         pip install black
-         black . --check --exclude=venv/
-         
-     - name: Upload coverage report
-       uses: codecov/codecov-action@v3
-       with:
-         file: ./coverage.xml
-         fail_ci_if_error: false
-
-Ce job assure que :
-- Les tests unitaires passent
-- La couverture du code atteint au moins 80%
-- Le code respecte les conventions de style
-- Le formatage du code est conforme aux standards
-
-Job 2: Vérification de sécurité
-------------------------------
-
-Ce job analyse le code pour détecter les vulnérabilités potentielles :
-
-.. code-block:: yaml
-
-   security-check:
-     runs-on: ubuntu-latest
-     needs: test
-     
-     steps:
-     - uses: actions/checkout@v3
-     
-     - name: Set up Python 3.9
-       uses: actions/setup-python@v4
-       with:
-         python-version: '3.9'
-         
-     - name: Install dependencies
-       run: |
-         python -m pip install --upgrade pip
-         pip install bandit safety
-         
-     - name: Check security with bandit
-       run: |
-         bandit -r . -x ./venv,./docs,./tests
-         
-     - name: Check dependencies with safety
-       run: |
-         safety check -r requirements.txt
-
-Ce job utilise deux outils de sécurité :
-- **Bandit** : Analyse statique du code Python pour identifier les problèmes de sécurité
-- **Safety** : Vérification des dépendances pour identifier les vulnérabilités connues
-
-Job 3: Documentation
-------------------
-
-Ce job génère la documentation du projet :
-
-.. code-block:: yaml
-
-   docs:
-     needs: test
-     runs-on: ubuntu-latest
-     
-     steps:
-     - uses: actions/checkout@v3
-     
-     - name: Set up Python 3.9
-       uses: actions/setup-python@v4
-       with:
-         python-version: '3.9'
-         
-     - name: Install dependencies
-       run: |
-         python -m pip install --upgrade pip
-         pip install -r requirements.txt
-         
-     - name: Build documentation
-       run: |
-         mkdir -p docs/_static
-         cd docs && make html
-         
-     - name: Upload documentation
-       uses: actions/upload-artifact@v3
-       with:
-         name: documentation
-         path: docs/_build/html/
-
-La documentation générée est sauvegardée comme artefact de build et peut être téléchargée depuis l'interface GitHub Actions.
-
-Job 4: Construction et publication Docker
+Job 1: Construction et publication Docker
 ---------------------------------------
 
-Ce job construit et publie l'image Docker sur DockerHub :
+Ce job est exécuté à chaque push sur la branche main. Il effectue les actions suivantes :
 
 .. code-block:: yaml
 
-   build-and-push:
-     needs: [test, security-check, docs]
-     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+   build:
      runs-on: ubuntu-latest
      
      steps:
-     - uses: actions/checkout@v3
-     
-     - name: Set up Docker Buildx
-       uses: docker/setup-buildx-action@v2
-       
-     - name: Login to DockerHub
-       uses: docker/login-action@v2
-       with:
-         username: ${{ secrets.DOCKERHUB_USERNAME }}
-         password: ${{ secrets.DOCKERHUB_TOKEN }}
+       - name: Checkout repository
+         uses: actions/checkout@v3
          
-     - name: Extract metadata for Docker
-       id: meta
-       uses: docker/metadata-action@v4
-       with:
-         images: ${{ secrets.DOCKERHUB_USERNAME }}/project13
+       - name: Set up Docker Buildx
+         uses: docker/setup-buildx-action@v2
          
-     - name: Build and push Docker image
-       uses: docker/build-push-action@v4
-       with:
-         context: .
-         push: true
-         tags: |
-           ${{ secrets.DOCKERHUB_USERNAME }}/project13:latest
-           ${{ secrets.DOCKERHUB_USERNAME }}/project13:${{ github.sha }}
-         cache-from: type=gha
-         cache-to: type=gha,mode=max
+       - name: Log in to Docker Hub
+         uses: docker/login-action@v2
+         with:
+           username: ${{ secrets.DOCKER_USERNAME }}
+           password: ${{ secrets.DOCKER_PASSWORD }}
+           
+       - name: Build and push Docker image
+         uses: docker/build-push-action@v5
+         with:
+           context: .
+           push: true
+           tags: purityoff/oc-lettings:latest
 
 Ce job utilise plusieurs actions GitHub :
-- **docker/setup-buildx-action** : Configurer Buildx pour des builds plus efficaces
+- **actions/checkout** : Récupère le code source
+- **docker/setup-buildx-action** : Configure Buildx pour des builds plus efficaces
 - **docker/login-action** : Authentification sur DockerHub
-- **docker/metadata-action** : Extraction des métadonnées pour le tagging
 - **docker/build-push-action** : Construction et publication de l'image
 
-L'image est taguée avec :
-- ``latest`` pour toujours pointer vers la dernière version
-- Le SHA du commit pour assurer la traçabilité
+L'image est taguée avec ``latest`` pour toujours pointer vers la dernière version.
 
-Job 5: Déploiement
-----------------
+Déploiement automatique sur Render
+--------------------------------
 
-Ce job déploie l'application sur Render :
+Render est configuré pour surveiller l'image Docker sur Docker Hub. Le déploiement est entièrement automatisé :
 
-.. code-block:: yaml
+1. Render détecte les nouvelles versions de l'image Docker
+2. Render télécharge automatiquement la nouvelle image
+3. Render déploie la nouvelle image sur votre service web
 
-   deploy:
-     needs: build-and-push
-     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-     runs-on: ubuntu-latest
-     steps:
-     - name: Deploy to Render
-       run: |
-         curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+Pour configurer le déploiement automatique sur Render :
 
-Le déploiement utilise un webhook Render qui déclenche un déploiement automatique.
+1. Créez un compte sur `Render <https://render.com>`_
+2. Créez un nouveau service web de type Docker
+3. Spécifiez l'URL de l'image : ``docker.io/purityoff/oc-lettings:latest``
+4. Configurez les variables d'environnement nécessaires
+5. Activez l'option "Auto-Deploy" pour les mises à jour automatiques
 
-Job 6: Validation du déploiement
-------------------------------
+Avantages de cette approche
+-------------------------
 
-Ce dernier job vérifie que le déploiement s'est correctement terminé :
+Cette approche de CI/CD simplifiée offre plusieurs avantages :
 
-.. code-block:: yaml
-
-   validate-deployment:
-     needs: deploy
-     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
-     runs-on: ubuntu-latest
-     steps:
-     - name: Wait for deployment to complete
-       run: sleep 60
-       
-     - name: Validate deployment
-       run: |
-         status_code=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.DEPLOYMENT_URL }})
-         if [ $status_code -ne 200 ]; then
-           echo "Deployment validation failed with status code: $status_code"
-           exit 1
-         fi
-         echo "Deployment validated successfully!"
-
-Ce job :
-- Attend que le déploiement soit terminé (pause de 60 secondes)
-- Vérifie que le site répond avec un code HTTP 200
+1. **Simplicité** : Un workflow simple et facile à comprendre
+2. **Efficacité** : Déploiement rapide des modifications
+3. **Fiabilité** : Processus de déploiement cohérent
+4. **Traçabilité** : Chaque déploiement correspond à une image Docker spécifique
+5. **Facilité de rollback** : Possibilité de revenir à une version précédente en spécifiant une image Docker plus ancienne
 
 Configuration requise
 -------------------
 
 Pour que le pipeline fonctionne correctement, les secrets suivants doivent être configurés dans les paramètres du dépôt GitHub :
 
-- ``DOCKERHUB_USERNAME`` : Nom d'utilisateur DockerHub
-- ``DOCKERHUB_TOKEN`` : Token d'accès DockerHub
-- ``RENDER_DEPLOY_HOOK_URL`` : URL du webhook de déploiement Render
-- ``DEPLOYMENT_URL`` : URL de l'application déployée
+- ``DOCKER_USERNAME`` : Nom d'utilisateur DockerHub (purityoff)
+- ``DOCKER_PASSWORD`` : Token d'accès DockerHub
 
-Fonctionnement des branches
--------------------------
+Tester le pipeline localement
+---------------------------
 
-Le pipeline applique différentes règles selon le type d'événement :
+Vous pouvez tester le processus de déploiement localement en exécutant l'image Docker :
 
-- **Pull requests vers master** : Exécute uniquement les jobs de test, vérification de sécurité et documentation
-- **Push sur master** : Exécute tous les jobs, y compris la construction, la publication et le déploiement
+.. code-block:: bash
 
-Cette configuration permet de valider les changements avant leur fusion dans la branche principale. 
+   # Extraire l'image depuis Docker Hub
+   docker pull purityoff/oc-lettings:latest
+   
+   # Exécuter l'image localement
+   docker run -p 8000:8000 --env-file .env purityoff/oc-lettings:latest
+
+Modification et redéploiement
+---------------------------
+
+Pour apporter des modifications et les déployer :
+
+1. Modifiez le code source
+2. Committez et poussez les changements sur la branche main
+3. GitHub Actions construira et publiera automatiquement une nouvelle image Docker
+4. Render détectera la nouvelle image et la déploiera automatiquement
+
+Le temps entre le push sur GitHub et le déploiement sur Render est généralement de quelques minutes.
+
+Bonnes pratiques
+--------------
+
+Pour tirer le meilleur parti de ce pipeline CI/CD, suivez ces bonnes pratiques :
+
+1. **Tests locaux** : Testez vos modifications localement avant de les pousser
+2. **Messages de commit clairs** : Utilisez des messages descriptifs pour faciliter le suivi des changements
+3. **Branches de fonctionnalité** : Développez les nouvelles fonctionnalités sur des branches séparées
+4. **Pull requests** : Utilisez des pull requests pour réviser le code avant de le fusionner avec main
+5. **Surveillez les déploiements** : Vérifiez les logs sur Render après chaque déploiement
+
+Configuration du pipeline CI/CD
+-------------------------------
+
+Le pipeline CI/CD est configuré dans le fichier ``.github/workflows/ci-cd.yml``. Il comprend les étapes suivantes :
+
+1. **Tests** : Exécution des tests unitaires, vérification de la couverture de code, et analyse de la qualité du code.
+2. **Vérifications de sécurité** : Analyse du code source avec Bandit et vérification des dépendances avec Safety.
+3. **Documentation** : Génération de la documentation avec Sphinx.
+4. **Construction et publication de l'image Docker** : Construction de l'image Docker et publication sur DockerHub.
+5. **Déploiement** : Déploiement de l'application sur Render.
+6. **Validation du déploiement** : Vérification que l'application est bien en ligne après le déploiement.
+
+Pour que le pipeline fonctionne correctement, vous devez configurer les secrets suivants dans votre dépôt GitHub :
+
+- ``DOCKERHUB_USERNAME`` : Votre nom d'utilisateur DockerHub
+- ``DOCKERHUB_TOKEN`` : Votre token d'accès DockerHub
+- ``DEPLOY_HOOK_URL`` : URL du webhook de déploiement Render
+- ``DEPLOYMENT_URL`` : URL de votre application déployée sur Render
+
+Base de données
+-------------
+
+Le pipeline CI/CD est configuré pour utiliser SQLite comme base de données, ce qui simplifie le processus de déploiement. 
+L'image Docker est configurée pour stocker la base de données SQLite dans un volume persistant.
+
+Cette approche présente plusieurs avantages pour le workflow CI/CD :
+
+1. **Simplicité** : Pas besoin de configurer une base de données externe pour le déploiement
+2. **Rapidité** : Le processus de déploiement est plus rapide car il n'y a pas de migration vers une base de données externe
+3. **Cohérence** : Les mêmes tests fonctionnent de la même manière dans tous les environnements 
