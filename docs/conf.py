@@ -5,11 +5,6 @@
 
 import os
 import sys
-import django
-
-sys.path.insert(0, os.path.abspath(".."))
-os.environ["DJANGO_SETTINGS_MODULE"] = "oc_lettings_site.settings"
-django.setup()
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -79,3 +74,15 @@ autodoc_default_options = {
     "show-inheritance": True,
     "undoc-members": True,
 }
+
+# Seulement initialiser Django si nous ne sommes pas sur Read the Docs
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
+if not on_rtd:
+    # Ajouter le répertoire parent au chemin Python pour les imports
+    sys.path.insert(0, os.path.abspath(".."))
+
+    # Setup Django uniquement en local, pas sur ReadTheDocs
+    os.environ["DJANGO_SETTINGS_MODULE"] = "oc_lettings_site.settings"
+    import django
+
+    django.setup()
