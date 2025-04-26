@@ -1,9 +1,7 @@
 from django.shortcuts import render
 from django.http import Http404
 from .models import Profile
-from oc_lettings_site.utils.logging_utils import (
-    log_info, log_error, log_function_call
-)
+from oc_lettings_site.utils.logging_utils import log_info, log_error, log_function_call
 
 
 # MODIFICATION: Cette vue était à l'origine la fonction profiles_index
@@ -77,4 +75,5 @@ def profile(request, username):
         log_error(f"Error retrieving profile with username {username}", exc_info=e)
         # Convertir l'erreur en Http500 pour utiliser notre template personnalisé
         from django.http import HttpResponseServerError
+
         return HttpResponseServerError(render(request, "500.html"))

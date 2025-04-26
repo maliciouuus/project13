@@ -223,12 +223,12 @@ WSGI_APPLICATION = "oc_lettings_site.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 # Use DATABASE_URL if provided, otherwise use SQLite
-if 'pytest' in sys.modules:
+if "pytest" in sys.modules:
     # Configuration de base de données en mémoire pour les tests
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
         }
     }
 else:

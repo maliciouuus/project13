@@ -17,7 +17,7 @@ def enable_db_access_for_all_tests(db):
     """
     Permet à tous les tests d'accéder à la base de données sans avoir à spécifier
     explicitement la fixture db.
-    
+
     Cela résout les problèmes "Cannot operate on a closed database" qui peuvent
     survenir lors de l'exécution des tests.
     """
