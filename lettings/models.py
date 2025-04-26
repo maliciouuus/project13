@@ -5,11 +5,20 @@ from django.core.validators import MaxValueValidator, MinLengthValidator
 # -------------------------------------------------------------------------
 # MODIFICATION: Ce modèle était à l'origine dans oc_lettings_site/models.py
 # Il a été déplacé vers sa propre application 'lettings' pour une meilleure
-# organisation du code et une architecture plus modulaire
+# organisation du code et une architecture plus modulaire.
+#
+# Cette migration a été réalisée via des fichiers de migration Django
+# qui ont préservé les données existantes.
 # -------------------------------------------------------------------------
 class Address(models.Model):
     """
-    Represents a physical address.
+    Représente une adresse physique.
+
+    Les validateurs garantissent l'intégrité des données:
+    - 'number' doit être un entier positif inférieur à 10000
+    - 'state' doit être exactement 2 caractères (code d'état US)
+    - 'zip_code' doit être un entier positif à 5 chiffres max
+    - 'country_iso_code' doit être au moins 3 caractères (ex: USA, FRA)
     """
 
     number = models.PositiveIntegerField(validators=[MaxValueValidator(9999)])
@@ -26,7 +35,10 @@ class Address(models.Model):
 
     class Meta:
         """
-        Meta class for Address model
+        Meta classe pour le modèle Address
+
+        MODIFICATION: Correction de la pluralisation pour afficher "Addresses"
+        au lieu de "Addresss" dans l'interface d'administration
         """
 
         verbose_name_plural = "Addresses"
@@ -35,11 +47,17 @@ class Address(models.Model):
 # -------------------------------------------------------------------------
 # MODIFICATION: Ce modèle était à l'origine dans oc_lettings_site/models.py
 # Il a été déplacé vers sa propre application 'lettings' pour une meilleure
-# organisation du code et une architecture plus modulaire
+# organisation du code et une architecture plus modulaire.
+#
+# La relation OneToOne avec Address est maintenue pour préserver
+# l'intégrité référentielle de la base de données.
 # -------------------------------------------------------------------------
 class Letting(models.Model):
     """
-    Represents a property letting, linked to a physical address.
+    Représente une location immobilière, liée à une adresse physique.
+
+    Chaque location est associée à une adresse unique (OneToOne).
+    Si l'adresse est supprimée, la location sera également supprimée (CASCADE).
     """
 
     title = models.CharField(max_length=256)

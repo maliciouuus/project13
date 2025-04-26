@@ -4,6 +4,11 @@ from dotenv import load_dotenv
 from pathlib import Path
 from sentry_sdk.integrations.django import DjangoIntegration
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Utilisation de python-dotenv pour charger les variables d'environnement
+# d'un fichier .env, ce qui facilite la configuration dans différents environnements
+# sans exposer de données sensibles dans le code source.
+# -------------------------------------------------------------------------
 # Load environment variables from .env file
 load_dotenv()
 
@@ -14,14 +19,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Utilisation d'une variable d'environnement pour la clé secrète,
+# avec une valeur par défaut pour le développement local. Dans un environnement
+# de production, cette clé devrait être définie via la variable d'environnement.
+# -------------------------------------------------------------------------
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv(
     "DJANGO_SECRET_KEY", "fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s"
 )
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration flexible du mode DEBUG via une variable d'environnement.
+# La conversion str -> bool est gérée par la comparaison avec "true" en minuscules.
+# -------------------------------------------------------------------------
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration des hôtes autorisés via variables d'environnement.
+# Pour la production, définir ALLOWED_HOSTS comme une liste séparée par virgules.
+# -------------------------------------------------------------------------
 # Get the allowed hosts from environment variables
 allowed_hosts_env = os.getenv("ALLOWED_HOSTS", "")
 if allowed_hosts_env:
@@ -40,6 +58,13 @@ else:
 if "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
 
+# Montrer les détails des exceptions seulement en mode DEBUG
+DEBUG_PROPAGATE_EXCEPTIONS = DEBUG
+
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration de Sentry pour le suivi des erreurs en production.
+# Sentry n'est initialisé que si la variable d'environnement SENTRY_DSN est définie.
+# -------------------------------------------------------------------------
 # Sentry configuration - only initialize if DSN is provided
 sentry_dsn = os.getenv("SENTRY_DSN")
 if sentry_dsn:
@@ -51,10 +76,18 @@ if sentry_dsn:
         send_default_pii=True,
     )
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Création automatique du répertoire de logs pour stocker les journaux.
+# -------------------------------------------------------------------------
 # Create logs directory if it doesn't exist
 logs_dir = os.path.join(BASE_DIR, "logs")
 os.makedirs(logs_dir, exist_ok=True)
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration avancée de journalisation avec plusieurs handlers
+# (console, fichier) et formatters pour différents niveaux de détail.
+# Chaque application a son propre logger configuré.
+# -------------------------------------------------------------------------
 # Logging configuration
 LOGGING = {
     "version": 1,
@@ -117,6 +150,10 @@ LOGGING = {
 }
 
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration des applications installées avec nos nouvelles
+# applications 'lettings' et 'profiles' ajoutées à la liste.
+# -------------------------------------------------------------------------
 # Application definition
 INSTALLED_APPS = [
     "oc_lettings_site.apps.OCLettingsSiteConfig",
@@ -140,6 +177,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration conditionnelle de Whitenoise pour servir les fichiers
+# statiques efficacement en production. Activé uniquement si USE_WHITENOISE=True
+# dans les variables d'environnement. Si non activé, utilisation du stockage Django par défaut.
+# -------------------------------------------------------------------------
 # Add whitenoise middleware if environment variable is set
 if os.getenv("USE_WHITENOISE", "False").lower() == "true":
     MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
@@ -150,6 +192,10 @@ else:
 
 ROOT_URLCONF = "oc_lettings_site.urls"
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration des templates avec un répertoire global 'templates'
+# pour les templates partagés, en plus des templates spécifiques des applications.
+# -------------------------------------------------------------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -169,6 +215,10 @@ TEMPLATES = [
 WSGI_APPLICATION = "oc_lettings_site.wsgi.application"
 
 
+# -------------------------------------------------------------------------
+# MODIFICATION: Configuration de la base de données avec SQLite par défaut.
+# Support pour PostgreSQL via dj_database_url si DATABASE_URL est configuré.
+# -------------------------------------------------------------------------
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 # Use DATABASE_URL if provided, otherwise use SQLite
