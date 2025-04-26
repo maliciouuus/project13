@@ -38,10 +38,10 @@ class ProfilesTest(TestCase):
         self.assertContains(response, self.user.username)
         self.assertContains(response, self.profile.favorite_city)
 
-    @patch("profiles.views.get_object_or_404")
+    @patch("profiles.views.Profile.objects.get")
     def test_profile_detail_error(self, mock_get_object):
         """Test the profile detail view error handling."""
-        mock_get_object.side_effect = Http404("Profile not found")
+        mock_get_object.side_effect = Profile.DoesNotExist("Profile not found")
 
         # Appeler directement la vue en utilisant le RequestFactory
         request = self.factory.get("/")
@@ -52,15 +52,15 @@ class ProfilesTest(TestCase):
     def test_profile_exception_logging(self, mock_log_error):
         """Test that exceptions in the profile view are properly logged."""
         # Configuration du mock pour lever une exception
-        with patch("profiles.views.get_object_or_404") as mock_get:
+        with patch("profiles.views.Profile.objects.get") as mock_get:
             mock_get.side_effect = Exception("Test exception")
 
             # Création d'une requête
             request = self.factory.get("/")
 
-            # Vérification que l'exception est bien propagée
-            with self.assertRaises(Exception):
-                profile(request, "nonexistent")
+            # Vérification que l'exception est correctement gérée
+            response = profile(request, "nonexistent")
+            self.assertEqual(response.status_code, 500)
 
             # Vérification que log_error a été appelé avec les bons arguments
             mock_log_error.assert_called_once()

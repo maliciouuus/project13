@@ -40,10 +40,10 @@ class LettingsTest(TestCase):
         self.assertContains(response, self.letting.title)
         self.assertContains(response, self.address.street)
 
-    @patch("lettings.views.get_object_or_404")
+    @patch("lettings.views.Letting.objects.get")
     def test_letting_detail_error(self, mock_get_object):
         """Test the letting detail view error handling."""
-        mock_get_object.side_effect = Http404("Letting not found")
+        mock_get_object.side_effect = Letting.DoesNotExist("Letting not found")
 
         # Appeler directement la vue en utilisant le RequestFactory
         request = self.factory.get("/")
@@ -54,15 +54,15 @@ class LettingsTest(TestCase):
     def test_letting_exception_logging(self, mock_log_error):
         """Test that exceptions in the letting view are properly logged."""
         # Configuration du mock pour lever une exception
-        with patch("lettings.views.get_object_or_404") as mock_get:
+        with patch("lettings.views.Letting.objects.get") as mock_get:
             mock_get.side_effect = Exception("Test exception")
 
             # Création d'une requête
             request = self.factory.get("/")
 
-            # Vérification que l'exception est bien propagée
-            with self.assertRaises(Exception):
-                letting(request, 9999)
+            # Vérification que l'exception est correctement gérée
+            response = letting(request, 9999)
+            self.assertEqual(response.status_code, 500)
 
             # Vérification que log_error a été appelé avec les bons arguments
             mock_log_error.assert_called_once()
