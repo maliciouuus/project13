@@ -78,12 +78,7 @@ Cette séparation en applications distinctes permet:
    python manage.py migrate
    ```
 
-6. Créer un superutilisateur:
-   ```bash
-   python manage.py create_superuser
-   ```
-
-7. Démarrer le serveur de développement:
+6. Démarrer le serveur de développement:
    ```bash
    python manage.py runserver
    ```
@@ -110,8 +105,8 @@ Si le port 8000 est déjà utilisé, vous pouvez en utiliser un autre:
    ```
 
 Un superutilisateur est automatiquement créé au premier démarrage avec les identifiants suivants:
-- **Nom d'utilisateur:** francis
-- **Mot de passe:** francis
+- **Nom d'utilisateur:** admin
+- **Mot de passe:** Abc1234!
 
 Vous pouvez l'utiliser pour accéder à l'interface d'administration à l'adresse http://localhost:8000/admin/.
 

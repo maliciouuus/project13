@@ -56,8 +56,8 @@ Connexion à l'administration
 
 Un utilisateur admin est créé automatiquement:
 
-* **Nom d'utilisateur:** francis
-* **Mot de passe:** francis
+* **Nom d'utilisateur:** admin
+* **Mot de passe:** Abc1234!
 
 Utilisation avec Docker
 ---------------------

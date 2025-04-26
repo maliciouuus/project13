@@ -42,10 +42,9 @@ RUN echo 'server {\n\
     }\n\
 }' > /etc/nginx/sites-available/default
 
-# Créer un script d'entrée pour exécuter les migrations, créer le superutilisateur, et démarrer Gunicorn et Nginx
+# Créer un script d'entrée pour exécuter les migrations, et démarrer Gunicorn et Nginx
 RUN echo '#!/bin/sh\n\
 python manage.py migrate\n\
-python manage.py create_superuser\n\
 service nginx start\n\
 gunicorn oc_lettings_site.wsgi:application --bind 127.0.0.1:8000 --workers 2 --log-level debug --access-logfile=-\n\
 ' > /app/docker-entrypoint.sh \

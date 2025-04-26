@@ -57,5 +57,5 @@ Pour vérifier le déploiement, vous pouvez:
 
 1. Visiter le site déployé
 2. Se connecter à l'interface d'administration avec:
-   - **Nom d'utilisateur:** francis
-   - **Mot de passe:** francis 
+   - **Nom d'utilisateur:** admin
+   - **Mot de passe:** Abc1234! 
