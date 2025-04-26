@@ -3,6 +3,7 @@ import sentry_sdk
 from dotenv import load_dotenv
 from pathlib import Path
 from sentry_sdk.integrations.django import DjangoIntegration
+import sys
 
 # -------------------------------------------------------------------------
 # MODIFICATION: Utilisation de python-dotenv pour charger les variables d'environnement
@@ -222,12 +223,22 @@ WSGI_APPLICATION = "oc_lettings_site.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 # Use DATABASE_URL if provided, otherwise use SQLite
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "oc-lettings-site.sqlite3"),
+if 'pytest' in sys.modules:
+    # Configuration de base de données en mémoire pour les tests
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
     }
-}
+else:
+    # Configuration normale pour le développement et la production
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "oc-lettings-site.sqlite3"),
+        }
+    }
 
 # Use dj_database_url for PostgreSQL if available and DATABASE_URL is set
 database_url = os.getenv("DATABASE_URL")
